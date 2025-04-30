@@ -1,5 +1,5 @@
 # pqc-zig
-Bindings to the [PQClean](https://github.com/PQClean/PQClean) C implementations of cryptographic algorithms proposed during the [NIST Post-Quantum Cryptography Competition](https://csrc.nist.gov/projects/post-quantum-cryptography).
+Zig bindings to the [PQClean](https://github.com/PQClean/PQClean) C implementations of cryptographic algorithms proposed during the [NIST Post-Quantum Cryptography Competition](https://csrc.nist.gov/projects/post-quantum-cryptography).
 
 ### Requirements
 - Make
