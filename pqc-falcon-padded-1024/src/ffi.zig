@@ -1,20 +1,17 @@
 const std = @import("std");
 const build_options = @import("build_options");
 
-// #define PQCLEAN_FALCON512_CLEAN_CRYPTO_SECRETKEYBYTES   1281
-pub const SK_BYTE_LEN: u32 = 1281;
-// #define PQCLEAN_FALCON512_CLEAN_CRYPTO_PUBLICKEYBYTES   897
-pub const PK_BYTE_LEN: u32 = 897;
-// #define PQCLEAN_FALCON512_CLEAN_CRYPTO_BYTES            752
-pub const SIG_BYTE_LEN: u32 = 752;
+// #define PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_SECRETKEYBYTES   2305
+pub const SK_BYTE_LEN: u32 = 2305;
+// #define PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_PUBLICKEYBYTES   1793
+pub const PK_BYTE_LEN: u32 = 1793;
+// #define PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_BYTES            1280
+pub const SIG_BYTE_LEN: u32 = 1280;
 
-// #define PQCLEAN_FALCON512_CLEAN_CRYPTO_ALGNAME          "Falcon-512"
-pub const ALG_NAME: []const u8 = "Falcon-512";
+// #define PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_ALGNAME          "Falcon-padded-1024"
+pub const ALG_NAME: []const u8 = "Falcon-padded-1024";
 
-// #define PQCLEAN_FALCONPADDED512_CLEAN_CRYPTO_BYTES      666 // used in signature verification
-pub const SIG_PADDED_BYTE_LEN: u32 = 666; // used in signature verification
-
-// int PQCLEAN_FALCON512_CLEAN_crypto_sign_keypair(
+// int PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_keypair(
 //     uint8_t *pk, uint8_t *sk);
 pub fn crypto_sign_keypair(
     pk: *[PK_BYTE_LEN]u8,
@@ -24,21 +21,21 @@ pub fn crypto_sign_keypair(
         const c = @cImport({
             @cInclude("avx2/api.h");
         });
-        return c.PQCLEAN_FALCON512_AVX2_crypto_sign_keypair(pk, sk);
+        return c.PQCLEAN_FALCONPADDED1024_AVX2_crypto_sign_keypair(pk, sk);
     } else if (build_options.aarch64) {
         const c = @cImport({
             @cInclude("aarch64/api.h");
         });
-        return c.PQCLEAN_FALCON512_AARCH64_crypto_sign_keypair(pk, sk);
+        return c.PQCLEAN_FALCONPADDED1024_AARCH64_crypto_sign_keypair(pk, sk);
     } else {
         const c = @cImport({
             @cInclude("clean/api.h");
         });
-        return c.PQCLEAN_FALCON512_CLEAN_crypto_sign_keypair(pk, sk);
+        return c.PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_keypair(pk, sk);
     }
 }
 
-// int PQCLEAN_FALCON512_CLEAN_crypto_sign_signature(
+// int PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_signature(
 //     uint8_t *sig, size_t *siglen,
 //     const uint8_t *m, size_t mlen, const uint8_t *sk);
 pub fn crypto_sign_signature(
@@ -52,21 +49,21 @@ pub fn crypto_sign_signature(
         const c = @cImport({
             @cInclude("avx2/api.h");
         });
-        return c.PQCLEAN_FALCON512_AVX2_crypto_sign_signature(sig, siglen, m, mlen, sk);
+        return c.PQCLEAN_FALCONPADDED1024_AVX2_crypto_sign_signature(sig, siglen, m, mlen, sk);
     } else if (build_options.aarch64) {
         const c = @cImport({
             @cInclude("aarch64/api.h");
         });
-        return c.PQCLEAN_FALCON512_AARCH64_crypto_sign_signature(sig, siglen, m, mlen, sk);
+        return c.PQCLEAN_FALCONPADDED1024_AARCH64_crypto_sign_signature(sig, siglen, m, mlen, sk);
     } else {
         const c = @cImport({
             @cInclude("clean/api.h");
         });
-        return c.PQCLEAN_FALCON512_CLEAN_crypto_sign_signature(sig, siglen, m, mlen, sk);
+        return c.PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_signature(sig, siglen, m, mlen, sk);
     }
 }
 
-// int PQCLEAN_FALCON512_CLEAN_crypto_sign_verify(
+// int PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_verify(
 //     const uint8_t *sig, size_t siglen,
 //     const uint8_t *m, size_t mlen, const uint8_t *pk);
 pub fn crypto_sign_verify(
@@ -80,21 +77,21 @@ pub fn crypto_sign_verify(
         const c = @cImport({
             @cInclude("avx2/api.h");
         });
-        return c.PQCLEAN_FALCON512_AVX2_crypto_sign_verify(sig, siglen, m, mlen, pk);
+        return c.PQCLEAN_FALCONPADDED1024_AVX2_crypto_sign_verify(sig, siglen, m, mlen, pk);
     } else if (build_options.aarch64) {
         const c = @cImport({
             @cInclude("aarch64/api.h");
         });
-        return c.PQCLEAN_FALCON512_AARCH64_crypto_sign_verify(sig, siglen, m, mlen, pk);
+        return c.PQCLEAN_FALCONPADDED1024_AARCH64_crypto_sign_verify(sig, siglen, m, mlen, pk);
     } else {
         const c = @cImport({
             @cInclude("clean/api.h");
         });
-        return c.PQCLEAN_FALCON512_CLEAN_crypto_sign_verify(sig, siglen, m, mlen, pk);
+        return c.PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_verify(sig, siglen, m, mlen, pk);
     }
 }
 
-// int PQCLEAN_FALCON512_CLEAN_crypto_sign(
+// int PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign(
 //     uint8_t *sm, size_t *smlen,
 //     const uint8_t *m, size_t mlen, const uint8_t *sk);
 pub fn crypto_sign(
@@ -108,21 +105,21 @@ pub fn crypto_sign(
         const c = @cImport({
             @cInclude("avx2/api.h");
         });
-        return c.PQCLEAN_FALCON512_AVX2_crypto_sign(sm, smlen, m, mlen, sk);
+        return c.PQCLEAN_FALCONPADDED1024_AVX2_crypto_sign(sm, smlen, m, mlen, sk);
     } else if (build_options.aarch64) {
         const c = @cImport({
             @cInclude("aarch64/api.h");
         });
-        return c.PQCLEAN_FALCON512_AARCH64_crypto_sign(sm, smlen, m, mlen, sk);
+        return c.PQCLEAN_FALCONPADDED1024_AARCH64_crypto_sign(sm, smlen, m, mlen, sk);
     } else {
         const c = @cImport({
             @cInclude("clean/api.h");
         });
-        return c.PQCLEAN_FALCON512_CLEAN_crypto_sign(sm, smlen, m, mlen, sk);
+        return c.PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign(sm, smlen, m, mlen, sk);
     }
 }
 
-// int PQCLEAN_FALCON512_CLEAN_crypto_sign_open(
+// int PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_open(
 //     uint8_t *m, size_t *mlen,
 //     const uint8_t *sm, size_t smlen, const uint8_t *pk);
 pub fn crypto_sign_open(
@@ -136,17 +133,17 @@ pub fn crypto_sign_open(
         const c = @cImport({
             @cInclude("avx2/api.h");
         });
-        return c.PQCLEAN_FALCON512_AVX2_crypto_sign_open(m, mlen, sm, smlen, pk);
+        return c.PQCLEAN_FALCONPADDED1024_AVX2_crypto_sign_open(m, mlen, sm, smlen, pk);
     } else if (build_options.aarch64) {
         const c = @cImport({
             @cInclude("aarch64/api.h");
         });
-        return c.PQCLEAN_FALCON512_AARCH64_crypto_sign_open(m, mlen, sm, smlen, pk);
+        return c.PQCLEAN_FALCONPADDED1024_AARCH64_crypto_sign_open(m, mlen, sm, smlen, pk);
     } else {
         const c = @cImport({
             @cInclude("clean/api.h");
         });
-        return c.PQCLEAN_FALCON512_CLEAN_crypto_sign_open(m, mlen, sm, smlen, pk);
+        return c.PQCLEAN_FALCONPADDED1024_CLEAN_crypto_sign_open(m, mlen, sm, smlen, pk);
     }
 }
 
@@ -266,30 +263,27 @@ test "byte lengths" {
             @cInclude("avx2/api.h");
         });
 
-        try std.testing.expectEqual(SK_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_SECRETKEYBYTES);
-        try std.testing.expectEqual(PK_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_PUBLICKEYBYTES);
-        try std.testing.expectEqual(SIG_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_BYTES);
-        try std.testing.expectEqual(SIG_PADDED_BYTE_LEN, c.PQCLEAN_FALCONPADDED512_CLEAN_CRYPTO_BYTES);
-        try std.testing.expect(std.mem.eql(u8, ALG_NAME, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_ALGNAME));
+        try std.testing.expectEqual(SK_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_SECRETKEYBYTES);
+        try std.testing.expectEqual(PK_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
+        try std.testing.expectEqual(SIG_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_BYTES);
+        try std.testing.expect(std.mem.eql(u8, ALG_NAME, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_ALGNAME));
     } else if (build_options.aarch64) {
         const c = @cImport({
             @cInclude("aarch64/api.h");
         });
 
-        try std.testing.expectEqual(SK_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_SECRETKEYBYTES);
-        try std.testing.expectEqual(PK_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_PUBLICKEYBYTES);
-        try std.testing.expectEqual(SIG_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_BYTES);
-        try std.testing.expectEqual(SIG_PADDED_BYTE_LEN, c.PQCLEAN_FALCONPADDED512_CLEAN_CRYPTO_BYTES);
-        try std.testing.expect(std.mem.eql(u8, ALG_NAME, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_ALGNAME));
+        try std.testing.expectEqual(SK_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_SECRETKEYBYTES);
+        try std.testing.expectEqual(PK_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
+        try std.testing.expectEqual(SIG_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_BYTES);
+        try std.testing.expect(std.mem.eql(u8, ALG_NAME, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_ALGNAME));
     } else {
         const c = @cImport({
             @cInclude("clean/api.h");
         });
 
-        try std.testing.expectEqual(SK_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_SECRETKEYBYTES);
-        try std.testing.expectEqual(PK_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_PUBLICKEYBYTES);
-        try std.testing.expectEqual(SIG_BYTE_LEN, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_BYTES);
-        try std.testing.expectEqual(SIG_PADDED_BYTE_LEN, c.PQCLEAN_FALCONPADDED512_CLEAN_CRYPTO_BYTES);
-        try std.testing.expect(std.mem.eql(u8, ALG_NAME, c.PQCLEAN_FALCON512_CLEAN_CRYPTO_ALGNAME));
+        try std.testing.expectEqual(SK_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_SECRETKEYBYTES);
+        try std.testing.expectEqual(PK_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
+        try std.testing.expectEqual(SIG_BYTE_LEN, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_BYTES);
+        try std.testing.expect(std.mem.eql(u8, ALG_NAME, c.PQCLEAN_FALCONPADDED1024_CLEAN_CRYPTO_ALGNAME));
     }
 }
