@@ -1,5 +1,4 @@
 const std = @import("std");
-const ffi = @import("ffi.zig");
 const build_options = @import("build_options");
 
 // #define PQCLEAN_FALCON512_CLEAN_CRYPTO_SECRETKEYBYTES   1281
@@ -18,8 +17,8 @@ pub const SIG_PADDED_BYTE_LEN: u32 = 666; // used in signature verification
 // int PQCLEAN_FALCON512_CLEAN_crypto_sign_keypair(
 //     uint8_t *pk, uint8_t *sk);
 pub fn crypto_sign_keypair(
-    pk: *[ffi.PK_BYTE_LEN]u8,
-    sk: *[ffi.SK_BYTE_LEN]u8,
+    pk: *[PK_BYTE_LEN]u8,
+    sk: *[SK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -47,7 +46,7 @@ pub fn crypto_sign_signature(
     siglen: [*c]usize,
     m: [*c]const u8,
     mlen: usize,
-    sk: *[ffi.SK_BYTE_LEN]u8,
+    sk: *[SK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -75,7 +74,7 @@ pub fn crypto_sign_verify(
     siglen: usize,
     m: [*c]const u8,
     mlen: usize,
-    pk: *[ffi.PK_BYTE_LEN]u8,
+    pk: *[PK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -103,7 +102,7 @@ pub fn crypto_sign(
     smlen: [*c]usize,
     m: [*c]const u8,
     mlen: usize,
-    sk: *[ffi.SK_BYTE_LEN]u8,
+    sk: *[SK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -131,7 +130,7 @@ pub fn crypto_sign_open(
     mlen: [*c]usize,
     sm: [*c]const u8,
     smlen: usize,
-    pk: *[ffi.PK_BYTE_LEN]u8,
+    pk: *[PK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -153,8 +152,8 @@ pub fn crypto_sign_open(
 
 test "keypair generation" {
     // Allocate memory for the public and secret keys
-    var pk: [ffi.PK_BYTE_LEN]u8 = undefined;
-    var sk: [ffi.SK_BYTE_LEN]u8 = undefined;
+    var pk: [PK_BYTE_LEN]u8 = undefined;
+    var sk: [SK_BYTE_LEN]u8 = undefined;
 
     // Generate a new keypair
     const result = crypto_sign_keypair(&pk, &sk);
@@ -162,10 +161,9 @@ test "keypair generation" {
     try std.testing.expectEqual(@as(c_int, 0), result);
 }
 
-// TODO: Write tests
-test "sign signature" {
-    var pk: [ffi.PK_BYTE_LEN]u8 = undefined;
-    var sk: [ffi.SK_BYTE_LEN]u8 = undefined;
+test "sign signature and verify" {
+    var pk: [PK_BYTE_LEN]u8 = undefined;
+    var sk: [SK_BYTE_LEN]u8 = undefined;
     const result = crypto_sign_keypair(&pk, &sk);
     try std.testing.expectEqual(@as(c_int, 0), result);
 
@@ -213,4 +211,51 @@ test "sign signature" {
     );
 
     try std.testing.expectEqual(@as(c_int, -1), verify_result2);
+}
+
+// Works similar to sign_signature, but embeds the message in the signature
+test "crypto sign and verify" {
+    var pk: [PK_BYTE_LEN]u8 = undefined;
+    var sk: [SK_BYTE_LEN]u8 = undefined;
+    const result = crypto_sign_keypair(&pk, &sk);
+    try std.testing.expectEqual(@as(c_int, 0), result);
+
+    // Allocate memory for the message
+    const message: []const u8 = "Hello, world!";
+    const message_len: usize = message.len;
+
+    // Allocate memory for the signature
+    const alloc = std.heap.page_allocator;
+    const buffer: []u8 = alloc.alloc(u8, SIG_BYTE_LEN + message_len) catch unreachable;
+    defer alloc.free(buffer);
+    var bufferlen: usize = 0;
+
+    // Sign the message
+    const sign_result = crypto_sign(
+        @as([*c]u8, @ptrCast(buffer)),
+        &bufferlen,
+        @ptrCast(message),
+        message_len,
+        &sk,
+    );
+    try std.testing.expectEqual(@as(c_int, 0), sign_result);
+
+    // Create a new buffer for message
+    const message_buffer: []u8 = alloc.alloc(u8, message_len) catch unreachable;
+    var message_buffer_len: usize = 0;
+    defer alloc.free(message_buffer);
+
+    // Verify the signature
+    const verify_result = crypto_sign_open(
+        @as([*c]u8, @ptrCast(message_buffer)),
+        &message_buffer_len,
+        @ptrCast(buffer),
+        bufferlen,
+        &pk,
+    );
+    try std.testing.expectEqual(@as(c_int, 0), verify_result);
+
+    try std.testing.expectEqual(message_len, message_buffer_len);
+
+    try std.testing.expect(std.mem.eql(u8, message, message_buffer[0..message_buffer_len]));
 }
