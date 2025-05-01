@@ -25,12 +25,12 @@ Zig bindings to the [PQClean](https://github.com/PQClean/PQClean) C implementati
 - [ ] sphincs-sha2-192s-simple (Clean, AVX2)
 - [ ] sphincs-sha2-256f-simple (Clean, AVX2)
 - [ ] sphincs-sha2-256s-simple (Clean, AVX2)
-- [ ] sphincs-shake-128f-simple (Clean, AVX2)
-- [ ] sphincs-shake-128s-simple (Clean, AVX2)
-- [ ] sphincs-shake-192f-simple (Clean, AVX2)
-- [ ] sphincs-shake-192s-simple (Clean, AVX2)
-- [ ] sphincs-shake-256f-simple (Clean, AVX2)
-- [ ] sphincs-shake-256s-simple (Clean, AVX2)
+- [ ] sphincs-shake-128f-simple (Clean, AVX2, AARCH64)
+- [ ] sphincs-shake-128s-simple (Clean, AVX2, AARCH64)
+- [ ] sphincs-shake-192f-simple (Clean, AVX2, AARCH64)
+- [ ] sphincs-shake-192s-simple (Clean, AVX2, AARCH64)
+- [ ] sphincs-shake-256f-simple (Clean, AVX2, AARCH64)
+- [ ] sphincs-shake-256s-simple (Clean, AVX2, AARCH64)
 
 ### Tests
 While more rigorous testing is to be implemented, you can run tests by navigating to the desired module and using:
