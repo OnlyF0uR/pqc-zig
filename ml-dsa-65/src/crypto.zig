@@ -27,6 +27,23 @@ const Verifier = struct {
         ) == 0;
     }
 
+    pub fn verify_ctx(self: *const Verifier, message: []const u8, sig: *const []u8, len: usize, ctx: []const u8) bool {
+        // No need to even call the C function if the signature is too long
+        if (sig.len > ffi.SIG_BYTE_LEN) {
+            return false;
+        }
+
+        return ffi.crypto_sign_verify_ctx(
+            sig.ptr,
+            len,
+            message.ptr,
+            message.len,
+            ctx.ptr,
+            ctx.len,
+            &self.pub_key,
+        ) == 0;
+    }
+
     pub fn unfold(self: *const Verifier, sm: *const []u8, sm_len: usize, out_buffer: []u8) CryptoError!usize {
         // We don't really know the size of the unfolded message, s is somewhat variable,
         // so we can't use the length of the signature to determine the size of the unfolded message.
@@ -39,6 +56,28 @@ const Verifier = struct {
             &buffer_len,
             sm.ptr,
             sm_len,
+            &self.pub_key,
+        ) != 0) {
+            return CryptoError.CouldNotUnfold;
+        }
+
+        return buffer_len;
+    }
+
+    pub fn unfold_ctx(self: *const Verifier, sm: *const []u8, sm_len: usize, ctx: []const u8, out_buffer: []u8) CryptoError!usize {
+        // We don't really know the size of the unfolded message, s is somewhat variable,
+        // so we can't use the length of the signature to determine the size of the unfolded message.
+        // Therefore ensuring buffer size becomes unfeasible at this point and we cannot give a descriptive
+        // error message. Instead it will hard fail in the C code.
+
+        var buffer_len: usize = 0;
+        if (ffi.crypto_sign_open_ctx(
+            out_buffer.ptr,
+            &buffer_len,
+            sm.ptr,
+            sm_len,
+            ctx.ptr,
+            ctx.len,
             &self.pub_key,
         ) != 0) {
             return CryptoError.CouldNotUnfold;
@@ -98,6 +137,34 @@ const SignerPair = struct {
         return sig_len;
     }
 
+    pub fn sign_ctx(
+        self: *const SignerPair,
+        message: []const u8,
+        ctx: []const u8,
+        out_buffer: []u8,
+    ) CryptoError!usize {
+        if (out_buffer.len < ffi.SIG_BYTE_LEN) {
+            return CryptoError.BufferTooSmall;
+        }
+
+        var sig_len: usize = 0;
+        const result = ffi.crypto_sign_signature_ctx(
+            out_buffer.ptr,
+            &sig_len,
+            message.ptr,
+            message.len,
+            ctx.ptr,
+            ctx.len,
+            &self.sec_key,
+        );
+
+        if (result != 0) {
+            return CryptoError.SignatureGenerationFailed;
+        }
+
+        return sig_len;
+    }
+
     pub fn sign_and_fold(
         self: *const SignerPair,
         message: []const u8,
@@ -116,8 +183,31 @@ const SignerPair = struct {
         return out_len;
     }
 
+    pub fn sign_and_fold_ctx(
+        self: *const SignerPair,
+        message: []const u8,
+        ctx: []const u8,
+        out_buffer: []u8,
+    ) CryptoError!usize {
+        if (out_buffer.len < ffi.SIG_BYTE_LEN + message.len) {
+            return CryptoError.BufferTooSmall;
+        }
+
+        var out_len: usize = 0;
+        const result = ffi.crypto_sign_ctx(out_buffer.ptr, &out_len, message.ptr, message.len, ctx.ptr, ctx.len, &self.sec_key);
+        if (result != 0) {
+            return CryptoError.SignatureGenerationFailed;
+        }
+
+        return out_len;
+    }
+
     pub fn verify(self: *const SignerPair, message: []const u8, sig: *const []u8, len: usize) bool {
         return self.verifier.verify(message, sig, len);
+    }
+
+    pub fn verify_ctx(self: *const SignerPair, message: []const u8, sig: *const []u8, len: usize, ctx: []const u8) bool {
+        return self.verifier.verify_ctx(message, sig, len, ctx);
     }
 };
 
@@ -173,6 +263,42 @@ test "Signature fold and unfold" {
     defer allocator.free(unfolded_buffer);
 
     const unfolded_length = try pair.verifier.unfold(&signature, signature_len, unfolded_buffer);
+    try std.testing.expectEqual(unfolded_length, message.len);
+
+    try std.testing.expect(std.mem.eql(u8, message, unfolded_buffer));
+}
+
+test "Signature generation and verificaiton with context" {
+    const pair = try SignerPair.create();
+    const message = "Hello, world!";
+    const ctx = "context";
+
+    var buffer: [ffi.SIG_BYTE_LEN]u8 = undefined;
+    const buffer_length = try pair.sign_ctx(message, ctx, &buffer);
+
+    const buffer_slice = buffer[0..buffer_length];
+    const verify_result = pair.verify_ctx(message, &buffer_slice, buffer_length, ctx);
+    try std.testing.expect(verify_result);
+}
+
+test "Signature fold and unfold with context" {
+    const pair = try SignerPair.create();
+    const message = "Hello, world!";
+    const ctx = "context";
+
+    var allocator = std.heap.page_allocator;
+
+    // Buffer for the signature
+    var signature = try allocator.alloc(u8, ffi.SIG_BYTE_LEN + message.len);
+    defer allocator.free(signature);
+
+    const signature_len = try pair.sign_and_fold_ctx(message, ctx, signature);
+
+    // Buffer for the unfolded message
+    const unfolded_buffer = try allocator.alloc(u8, message.len);
+    defer allocator.free(unfolded_buffer);
+
+    const unfolded_length = try pair.verifier.unfold_ctx(&signature, signature_len, ctx, unfolded_buffer);
     try std.testing.expectEqual(unfolded_length, message.len);
 
     try std.testing.expect(std.mem.eql(u8, message, unfolded_buffer));

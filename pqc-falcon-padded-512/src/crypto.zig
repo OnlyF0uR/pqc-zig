@@ -27,7 +27,7 @@ const Verifier = struct {
         ) == 0;
     }
 
-    pub fn unfold(self: *const Verifier, sm: *const []u8, sm_len: usize, buffer: []u8) CryptoError!usize {
+    pub fn unfold(self: *const Verifier, sm: *const []u8, sm_len: usize, out_buffer: []u8) CryptoError!usize {
         // We don't really know the size of the unfolded message, s is somewhat variable,
         // so we can't use the length of the signature to determine the size of the unfolded message.
         // Therefore ensuring buffer size becomes unfeasible at this point and we cannot give a descriptive
@@ -35,7 +35,7 @@ const Verifier = struct {
 
         var buffer_len: usize = 0;
         if (ffi.crypto_sign_open(
-            buffer.ptr,
+            out_buffer.ptr,
             &buffer_len,
             sm.ptr,
             sm_len,

@@ -17,9 +17,9 @@ Zig bindings to the [PQClean](https://github.com/PQClean/PQClean) C implementati
 - [x] falcon-512 (Clean, AVX2, AARCH64)
 - [x] falcon-padded-1024 (Clean, AVX2, AARCH64)
 - [x] falcon-padded-512 (Clean, AVX2, AARCH64)
-- [ ] ml-dsa-44 (Clean, AVX2, AARCH64)
-- [ ] ml-dsa-65 (Clean, AVX2, AARCH64)
-- [ ] ml-dsa-87 (Clean, AVX2, AARCH64)
+- [x] ml-dsa-44 (Clean, AVX2, AARCH64)
+- [x] ml-dsa-65 (Clean, AVX2, AARCH64)
+- [x] ml-dsa-87 (Clean, AVX2, AARCH64)
 - [ ] sphincs-sha2-128s-simple (Clean, AVX2)
 - [ ] sphincs-sha2-192f-simple (Clean, AVX2)
 - [ ] sphincs-sha2-192s-simple (Clean, AVX2)
@@ -33,7 +33,7 @@ Zig bindings to the [PQClean](https://github.com/PQClean/PQClean) C implementati
 - [ ] sphincs-shake-256s-simple (Clean, AVX2)
 
 ### Tests
-Tests can be run individually per module by executing the following command within that module:
+While more rigorous testing is to be implemented, you can run tests by navigating to the desired module and using:
 ```bash
 zig build test
 ```
