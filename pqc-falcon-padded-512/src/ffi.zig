@@ -166,44 +166,39 @@ test "sign signature and verify" {
 
     // Allocate memory for the message
     const message: []const u8 = "Hello, world!";
-    const message_len: usize = message.len;
 
-    // Allocate memory for the signature
-    const alloc = std.heap.page_allocator;
-    const sig: []u8 = alloc.alloc(u8, SIG_BYTE_LEN) catch unreachable;
-    defer alloc.free(sig);
-    var siglen: usize = 0;
+    var buffer: [SIG_BYTE_LEN]u8 = undefined;
+    var buffer_len: usize = 0;
 
     // Sign the message
     const sign_result = crypto_sign_signature(
-        @as([*c]u8, @ptrCast(sig)),
-        &siglen,
-        @ptrCast(message),
-        message_len,
+        &buffer,
+        &buffer_len,
+        message.ptr,
+        message.len,
         &sk,
     );
     try std.testing.expectEqual(@as(c_int, 0), sign_result);
 
-    // Verify the signature
+    // // Verify the signature
     const verify_result = crypto_sign_verify(
-        @ptrCast(sig),
-        siglen,
-        @ptrCast(message),
-        message_len,
+        &buffer,
+        buffer_len,
+        message.ptr,
+        message.len,
         &pk,
     );
 
     try std.testing.expectEqual(@as(c_int, 0), verify_result);
 
     const message2: []const u8 = "Some other message!";
-    const message_len2: usize = message2.len;
 
     // Verify for different message
     const verify_result2 = crypto_sign_verify(
-        @ptrCast(sig),
-        siglen,
-        @ptrCast(message2),
-        message_len2,
+        &buffer,
+        buffer_len,
+        message2.ptr,
+        message2.len,
         &pk,
     );
 
@@ -219,11 +214,10 @@ test "crypto sign and verify" {
 
     // Allocate memory for the message
     const message: []const u8 = "Hello, world!";
-    const message_len: usize = message.len;
 
     // Allocate memory for the signature
     const alloc = std.heap.page_allocator;
-    const buffer: []u8 = alloc.alloc(u8, SIG_BYTE_LEN + message_len) catch unreachable;
+    const buffer: []u8 = alloc.alloc(u8, SIG_BYTE_LEN + message.len) catch unreachable;
     defer alloc.free(buffer);
     var bufferlen: usize = 0;
 
@@ -231,14 +225,14 @@ test "crypto sign and verify" {
     const sign_result = crypto_sign(
         @as([*c]u8, @ptrCast(buffer)),
         &bufferlen,
-        @ptrCast(message),
-        message_len,
+        message.ptr,
+        message.len,
         &sk,
     );
     try std.testing.expectEqual(@as(c_int, 0), sign_result);
 
     // Create a new buffer for message
-    const message_buffer: []u8 = alloc.alloc(u8, message_len) catch unreachable;
+    const message_buffer: []u8 = alloc.alloc(u8, message.len) catch unreachable;
     var message_buffer_len: usize = 0;
     defer alloc.free(message_buffer);
 
@@ -252,7 +246,7 @@ test "crypto sign and verify" {
     );
     try std.testing.expectEqual(@as(c_int, 0), verify_result);
 
-    try std.testing.expectEqual(message_len, message_buffer_len);
+    try std.testing.expectEqual(message.len, message_buffer_len);
 
     try std.testing.expect(std.mem.eql(u8, message, message_buffer[0..message_buffer_len]));
 }

@@ -13,7 +13,6 @@ const Verifier = struct {
     }
 
     pub fn verify(self: *const Verifier, message: []const u8, sig: *const []u8, len: usize) bool {
-        // No need to even call the C function if the signature is too long
         if (sig.len > ffi.SIG_BYTE_LEN) {
             return false;
         }
