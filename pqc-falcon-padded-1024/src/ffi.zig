@@ -43,7 +43,7 @@ pub fn crypto_sign_signature(
     siglen: [*c]usize,
     m: [*c]const u8,
     mlen: usize,
-    sk: *[SK_BYTE_LEN]u8,
+    sk: *const [SK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -71,7 +71,7 @@ pub fn crypto_sign_verify(
     siglen: usize,
     m: [*c]const u8,
     mlen: usize,
-    pk: *[PK_BYTE_LEN]u8,
+    pk: *const [PK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -99,7 +99,7 @@ pub fn crypto_sign(
     smlen: [*c]usize,
     m: [*c]const u8,
     mlen: usize,
-    sk: *[SK_BYTE_LEN]u8,
+    sk: *const [SK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -127,7 +127,7 @@ pub fn crypto_sign_open(
     mlen: [*c]usize,
     sm: [*c]const u8,
     smlen: usize,
-    pk: *[PK_BYTE_LEN]u8,
+    pk: *const [PK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({

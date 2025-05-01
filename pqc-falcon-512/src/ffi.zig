@@ -46,7 +46,7 @@ pub fn crypto_sign_signature(
     siglen: [*c]usize,
     m: [*c]const u8,
     mlen: usize,
-    sk: *[SK_BYTE_LEN]u8,
+    sk: *const [SK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -74,7 +74,7 @@ pub fn crypto_sign_verify(
     siglen: usize,
     m: [*c]const u8,
     mlen: usize,
-    pk: *[PK_BYTE_LEN]u8,
+    pk: *const [PK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -102,7 +102,7 @@ pub fn crypto_sign(
     smlen: [*c]usize,
     m: [*c]const u8,
     mlen: usize,
-    sk: *[SK_BYTE_LEN]u8,
+    sk: *const [SK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -130,7 +130,7 @@ pub fn crypto_sign_open(
     mlen: [*c]usize,
     sm: [*c]const u8,
     smlen: usize,
-    pk: *[PK_BYTE_LEN]u8,
+    pk: *const [PK_BYTE_LEN]u8,
 ) c_int {
     if (build_options.avx2) {
         const c = @cImport({
@@ -169,44 +169,39 @@ test "sign signature and verify" {
 
     // Allocate memory for the message
     const message: []const u8 = "Hello, world!";
-    const message_len: usize = message.len;
 
-    // Allocate memory for the signature
-    const alloc = std.heap.page_allocator;
-    const sig: []u8 = alloc.alloc(u8, SIG_BYTE_LEN) catch unreachable;
-    defer alloc.free(sig);
-    var siglen: usize = 0;
+    var buffer: [SIG_BYTE_LEN]u8 = undefined;
+    var buffer_len: usize = 0;
 
     // Sign the message
     const sign_result = crypto_sign_signature(
-        @as([*c]u8, @ptrCast(sig)),
-        &siglen,
-        @ptrCast(message),
-        message_len,
+        &buffer,
+        &buffer_len,
+        message.ptr,
+        message.len,
         &sk,
     );
     try std.testing.expectEqual(@as(c_int, 0), sign_result);
 
-    // Verify the signature
+    // // Verify the signature
     const verify_result = crypto_sign_verify(
-        @ptrCast(sig),
-        siglen,
-        @ptrCast(message),
-        message_len,
+        &buffer,
+        buffer_len,
+        message.ptr,
+        message.len,
         &pk,
     );
 
     try std.testing.expectEqual(@as(c_int, 0), verify_result);
 
     const message2: []const u8 = "Some other message!";
-    const message_len2: usize = message2.len;
 
     // Verify for different message
     const verify_result2 = crypto_sign_verify(
-        @ptrCast(sig),
-        siglen,
-        @ptrCast(message2),
-        message_len2,
+        &buffer,
+        buffer_len,
+        message2.ptr,
+        message2.len,
         &pk,
     );
 
@@ -234,7 +229,7 @@ test "crypto sign and verify" {
     const sign_result = crypto_sign(
         @as([*c]u8, @ptrCast(buffer)),
         &bufferlen,
-        @ptrCast(message),
+        message.ptr,
         message_len,
         &sk,
     );
